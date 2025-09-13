@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, ProfileUpdateRequest, apiService } from '@/services/api';
+import { User, ProfileUpdateRequest, Track, TrackUpdateRequest, apiService } from '@/services/api';
 import { useSession } from 'next-auth/react';
 
 interface ProfileFormProps {
@@ -19,6 +19,13 @@ export function ProfileForm({ user, onProfileUpdate }: ProfileFormProps) {
   // Separate state for media consent to avoid conflicts
   const [mediaConsentState, setMediaConsentState] = useState(user.media_consent || false);
   
+  // Track selection state
+  const [availableTracks, setAvailableTracks] = useState<Track[]>([]);
+  const [isLoadingTracks, setIsLoadingTracks] = useState(false);
+  const [isUpdatingTrack, setIsUpdatingTrack] = useState(false);
+  const [trackError, setTrackError] = useState<string | null>(null);
+  const [trackSuccess, setTrackSuccess] = useState<string | null>(null);
+  
   const [formData, setFormData] = useState<ProfileUpdateRequest>({
     first_name: user.first_name || '',
     last_name: user.last_name || '',
@@ -27,6 +34,29 @@ export function ProfileForm({ user, onProfileUpdate }: ProfileFormProps) {
     graduation_year: user.graduation_year || undefined,
     media_consent: user.media_consent || false,
   });
+
+  // Load available tracks on component mount
+  useEffect(() => {
+    const loadTracks = async () => {
+      if (!session?.djangoAccessToken) return;
+      
+      setIsLoadingTracks(true);
+      try {
+        const response = await apiService.getTracks(session.djangoAccessToken);
+        if (response.data) {
+          setAvailableTracks(response.data);
+        } else if (response.error) {
+          setTrackError('Failed to load career tracks');
+        }
+      } catch (err) {
+        setTrackError('Failed to load career tracks');
+      } finally {
+        setIsLoadingTracks(false);
+      }
+    };
+
+    loadTracks();
+  }, [session?.djangoAccessToken]);
 
   // Update form data when user prop changes (e.g., after profile update)
   // But completely isolate media_consent to avoid conflicts
@@ -181,6 +211,37 @@ export function ProfileForm({ user, onProfileUpdate }: ProfileFormProps) {
     }
   };
 
+  // Track selection handler
+  const handleTrackChange = async (trackId: number | string) => {
+    if (!session?.djangoAccessToken || isUpdatingTrack) return;
+
+    setIsUpdatingTrack(true);
+    setTrackError(null);
+    setTrackSuccess(null);
+
+    try {
+      const trackData: TrackUpdateRequest = { track_id: trackId };
+      const response = await apiService.updateUserTrack(user.id, trackData, session.djangoAccessToken);
+      
+      if (response.error) {
+        setTrackError(response.error);
+      } else if (response.data) {
+        const message = trackId === '' ? 'Track removed successfully!' : `Track updated to ${response.data.user.track_info?.display_name || 'selected track'}!`;
+        setTrackSuccess(message);
+        
+        // Update parent component with the updated user data
+        onProfileUpdate(response.data.user);
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => setTrackSuccess(null), 3000);
+      }
+    } catch (err) {
+      setTrackError('Failed to update career track. Please try again.');
+    } finally {
+      setIsUpdatingTrack(false);
+    }
+  };
+
   const formatMemberSince = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -330,6 +391,61 @@ export function ProfileForm({ user, onProfileUpdate }: ProfileFormProps) {
               />
             ) : (
               <p className="text-stone-900 py-2">{user.graduation_year || 'Not provided'}</p>
+            )}
+          </div>
+
+          {/* Career Track */}
+          <div className="profile-field md:col-span-2">
+            <label className="block text-sm font-medium text-stone-700 mb-1">
+              Career Track
+            </label>
+            {isLoadingTracks ? (
+              <div className="flex items-center text-stone-500 py-2">
+                <div className="animate-spin -ml-1 mr-2 h-4 w-4 border-2 border-stone-300 border-t-stone-600 rounded-full"></div>
+                Loading career tracks...
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <select
+                  value={user.track || ''}
+                  onChange={(e) => handleTrackChange(e.target.value)}
+                  disabled={isUpdatingTrack}
+                  className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="">Select a career track</option>
+                  {availableTracks.map((track) => (
+                    <option key={track.id} value={track.id}>
+                      {track.display_name}
+                    </option>
+                  ))}
+                </select>
+                
+                {user.track_info && (
+                  <div className="text-sm text-stone-600 bg-stone-50 p-3 rounded-md">
+                    <div className="font-medium text-stone-800">{user.track_info.display_name}</div>
+                    <div className="mt-1">{user.track_info.description}</div>
+                  </div>
+                )}
+                
+                {trackError && (
+                  <div className="text-sm text-red-600 bg-red-50 p-2 rounded-md">
+                    {trackError}
+                  </div>
+                )}
+                
+                {trackSuccess && (
+                  <div className="text-sm text-green-600 bg-green-50 p-2 rounded-md">
+                    {trackSuccess}
+                  </div>
+                )}
+                
+                {isUpdatingTrack && (
+                  <div className="text-sm text-stone-500 flex items-center">
+                    <div className="animate-spin -ml-1 mr-2 h-3 w-3 border-2 border-stone-300 border-t-stone-600 rounded-full"></div>
+                    Updating track...
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </form>

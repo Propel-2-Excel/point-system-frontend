@@ -179,9 +179,9 @@ export const StatCards = () => {
     }
   }, [session, status, userProfile, dashboardStats, availableRewards, sharedDataLoading]); // Use shared data dependencies
 
-  // Force immediate refresh when component first mounts
+  // Force immediate refresh when component first mounts (only if no data exists)
   useEffect(() => {
-    if (session?.djangoAccessToken) {
+    if (session?.djangoAccessToken && !userProfile && !dashboardStats) {
       import('../../hooks/useSharedDashboardData').then(({ refreshDashboardData }) => {
         refreshDashboardData(true);
       });

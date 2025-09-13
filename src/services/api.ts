@@ -30,6 +30,8 @@ export interface User {
   suspension_reason?: string;
   onboarding_completed?: boolean;
   onboarding_completed_date?: string;
+  track?: number | null;
+  track_info?: Track | null;
   created_at: string;
   updated_at: string;
 }
@@ -248,6 +250,20 @@ export interface DiscordVerificationStatus {
   verification_required: boolean;
 }
 
+export interface Track {
+  id: number;
+  name: string;
+  display_name: string;
+  description: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrackUpdateRequest {
+  track_id: number | string; // number for track ID, empty string to remove track
+}
+
 export interface ProfileUpdateRequest {
   first_name?: string;
   last_name?: string;
@@ -431,6 +447,7 @@ class ApiService {
     major?: string;
     graduation_year?: number;
     company?: string;
+    track?: number;
     discord_data?: {
       discord_username: string;
     };
@@ -709,6 +726,18 @@ class ApiService {
   async getLifetimeStats(token?: string): Promise<ApiResponse<any>> {
     // This would be much faster than loading full history
     return this.request<any>('/dashboard/lifetime-stats/', {}, token);
+  }
+
+  // Track System API Methods
+  async getTracks(token?: string): Promise<ApiResponse<Track[]>> {
+    return this.request<Track[]>('/tracks/', {}, token);
+  }
+
+  async updateUserTrack(userId: number, trackData: TrackUpdateRequest, token?: string): Promise<ApiResponse<{ message: string; user: User }>> {
+    return this.request<{ message: string; user: User }>(`/users/${userId}/update_track/`, {
+      method: 'PATCH',
+      body: JSON.stringify(trackData),
+    }, token);
   }
 }
 

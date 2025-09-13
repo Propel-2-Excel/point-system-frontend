@@ -259,50 +259,66 @@ export const useSharedDashboardData = () => {
     };
   }, []);
 
-  // Handle page visibility changes (optimized to reduce excessive fetches)
-  useEffect(() => {
-    let mounted = true;
-    let timeout: NodeJS.Timeout;
+  // Handle page visibility changes (DISABLED to prevent excessive API calls)
+  // useEffect(() => {
+  //   let mounted = true;
+  //   let timeout: NodeJS.Timeout;
+  //   let lastFetchTime = 0;
+  //   const MIN_FETCH_INTERVAL = 10000; // Minimum 10 seconds between fetches
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && session?.djangoAccessToken && mounted) {
-        // Debounce visibility changes to prevent spam
-        clearTimeout(timeout);
-        timeout = setTimeout(async () => {
-          if (mounted) {
-            // Page became visible, fetching fresh data
-            await fetchData(session.djangoAccessToken);
-          }
-        }, 100);
-      }
-    };
+  //   const handleVisibilityChange = () => {
+  //     if (document.visibilityState === 'visible' && session?.djangoAccessToken && mounted) {
+  //       const now = Date.now();
+  //       if (now - lastFetchTime < MIN_FETCH_INTERVAL) {
+  //         // Skip if we fetched recently
+  //         return;
+  //       }
+        
+  //       // Debounce visibility changes to prevent spam
+  //       clearTimeout(timeout);
+  //       timeout = setTimeout(async () => {
+  //         if (mounted) {
+  //           lastFetchTime = Date.now();
+  //           // Page became visible, fetching fresh data
+  //           await fetchData(session.djangoAccessToken);
+  //         }
+  //       }, 1000); // Increased debounce time
+  //     }
+  //   };
 
-    const handleFocus = () => {
-      if (session?.djangoAccessToken && mounted) {
-        // Debounce focus events to prevent spam
-        clearTimeout(timeout);
-        timeout = setTimeout(async () => {
-          if (mounted) {
-            // Window focused, fetching fresh data
-            await fetchData(session.djangoAccessToken);
-          }
-        }, 100);
-      }
-    };
+  //   const handleFocus = () => {
+  //     if (session?.djangoAccessToken && mounted) {
+  //       const now = Date.now();
+  //       if (now - lastFetchTime < MIN_FETCH_INTERVAL) {
+  //         // Skip if we fetched recently
+  //         return;
+  //       }
+        
+  //       // Debounce focus events to prevent spam
+  //       clearTimeout(timeout);
+  //       timeout = setTimeout(async () => {
+  //         if (mounted) {
+  //           lastFetchTime = Date.now();
+  //           // Window focused, fetching fresh data
+  //           await fetchData(session.djangoAccessToken);
+  //         }
+  //       }, 1000); // Increased debounce time
+  //     }
+  //   };
 
-    // Only add listeners if we have a token
-    if (session?.djangoAccessToken) {
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-      window.addEventListener('focus', handleFocus);
-    }
+  //   // Only add listeners if we have a token
+  //   if (session?.djangoAccessToken) {
+  //     document.addEventListener('visibilitychange', handleVisibilityChange);
+  //     window.addEventListener('focus', handleFocus);
+  //   }
 
-    return () => {
-      mounted = false;
-      clearTimeout(timeout);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [session?.djangoAccessToken]);
+  //   return () => {
+  //     mounted = false;
+  //     clearTimeout(timeout);
+  //     document.removeEventListener('visibilitychange', handleVisibilityChange);
+  //     window.removeEventListener('focus', handleFocus);
+  //   };
+  // }, [session?.djangoAccessToken]);
 
   // Notify all subscribers of state changes
   const notifySubscribers = () => {
@@ -446,9 +462,17 @@ export const useSharedDashboardData = () => {
   // Main fetch effect - optimized to prevent React Strict Mode double execution
   useEffect(() => {
     let mounted = true;
+    let lastFetchTime = 0;
+    const MIN_FETCH_INTERVAL = 5000; // Minimum 5 seconds between fetches
 
     const loadData = async () => {
       if (status === "authenticated" && session?.djangoAccessToken && mounted) {
+        const now = Date.now();
+        if (now - lastFetchTime < MIN_FETCH_INTERVAL) {
+          // Skip if we fetched recently
+          return;
+        }
+        lastFetchTime = now;
         await fetchData(session.djangoAccessToken);
       }
     };
@@ -458,7 +482,7 @@ export const useSharedDashboardData = () => {
       if (mounted) {
         loadData();
       }
-    }, 10);
+    }, 100); // Increased delay
 
     return () => {
       mounted = false;

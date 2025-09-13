@@ -72,8 +72,8 @@ export const SystemStatus = () => {
 
     updateMetrics();
     
-    // Update metrics every 5 seconds
-    const interval = setInterval(updateMetrics, 5000);
+    // Update metrics every 30 seconds instead of 5 seconds to reduce API calls
+    const interval = setInterval(updateMetrics, 30000);
     return () => clearInterval(interval);
   }, [session]);
 

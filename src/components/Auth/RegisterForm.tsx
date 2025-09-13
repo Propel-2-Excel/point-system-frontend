@@ -1,7 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
-import { apiService } from '../../services/api';
+import { apiService, Track } from '../../services/api';
 
 interface DiscordValidationResult {
   valid: boolean;
@@ -33,7 +33,8 @@ export const RegisterForm = ({ onSwitchToLogin }: { onSwitchToLogin: () => void 
     university: '',
     major: '',
     graduation_year: new Date().getFullYear() + 4,
-    company: ''
+    company: '',
+    track: ''
   });
   const [registrationLoading, setRegistrationLoading] = useState(false);
   const [registrationError, setRegistrationError] = useState('');
@@ -49,6 +50,29 @@ export const RegisterForm = ({ onSwitchToLogin }: { onSwitchToLogin: () => void 
   // Discord verification modal state
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [pendingDiscordUsername, setPendingDiscordUsername] = useState('');
+
+  // Track selection state
+  const [availableTracks, setAvailableTracks] = useState<Track[]>([]);
+  const [isLoadingTracks, setIsLoadingTracks] = useState(false);
+
+  // Load available tracks on component mount
+  useEffect(() => {
+    const loadTracks = async () => {
+      setIsLoadingTracks(true);
+      try {
+        const response = await apiService.getTracks();
+        if (response.data) {
+          setAvailableTracks(response.data);
+        }
+      } catch (err) {
+        console.warn('Failed to load career tracks:', err);
+      } finally {
+        setIsLoadingTracks(false);
+      }
+    };
+
+    loadTracks();
+  }, []);
 
   // Step 1: Discord Username Validation
   const validateDiscordUsername = async (e: React.FormEvent) => {
@@ -124,6 +148,7 @@ export const RegisterForm = ({ onSwitchToLogin }: { onSwitchToLogin: () => void 
         major: formData.major,
         graduation_year: formData.graduation_year,
         company: formData.company,
+        track: formData.track ? parseInt(formData.track) : undefined,
         discord_data: {
           discord_username: discordValidationResult.username || discordValidationResult.discord_username
         }
@@ -659,6 +684,37 @@ export const RegisterForm = ({ onSwitchToLogin }: { onSwitchToLogin: () => void 
                   {fieldErrors.graduation_year && (
                     <p className="mt-1 text-sm text-red-600">{fieldErrors.graduation_year}</p>
                   )}
+                </div>
+
+                {/* Career Track Selection */}
+                <div>
+                  <label htmlFor="track" className="block text-sm font-medium text-stone-700">
+                    Career Track
+                  </label>
+                  {isLoadingTracks ? (
+                    <div className="mt-1 flex items-center text-stone-500 py-2">
+                      <div className="animate-spin -ml-1 mr-2 h-4 w-4 border-2 border-stone-300 border-t-stone-600 rounded-full"></div>
+                      Loading career tracks...
+                    </div>
+                  ) : (
+                    <select
+                      id="track"
+                      name="track"
+                      className="mt-1 block w-full px-3 py-2 border border-stone-300 rounded-md shadow-sm focus:outline-none focus:ring-violet-500 focus:border-violet-500"
+                      value={formData.track}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select a career track</option>
+                      {availableTracks.map((track) => (
+                        <option key={track.id} value={track.id}>
+                          {track.display_name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <p className="mt-1 text-xs text-stone-500">
+                    Choose your career focus to get personalized activities and opportunities
+                  </p>
                 </div>
               </>
             )}
