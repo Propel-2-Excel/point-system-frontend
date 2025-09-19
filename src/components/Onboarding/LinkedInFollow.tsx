@@ -193,6 +193,27 @@ export const LinkedInFollow = ({ userName, onComplete }: LinkedInFollowProps) =>
           </ul>
         </div>
 
+        {/* Progress indicator */}
+        <div className="bg-stone-50 rounded-lg p-4 mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-semibold text-stone-900">Follow Progress</h4>
+            <span className="text-sm text-stone-600">
+              {followedP2E && followedFounder ? '2/2 Complete' : `${(followedP2E ? 1 : 0) + (followedFounder ? 1 : 0)}/2 Complete`}
+            </span>
+          </div>
+          <div className="w-full bg-stone-200 rounded-full h-2">
+            <div 
+              className="bg-violet-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${((followedP2E ? 1 : 0) + (followedFounder ? 1 : 0)) * 50}%` }}
+            ></div>
+          </div>
+          {!(followedP2E && followedFounder) && (
+            <p className="text-sm text-stone-600 mt-2">
+              Please follow both P2E and Sebastien on LinkedIn to continue
+            </p>
+          )}
+        </div>
+
         {/* Action buttons */}
         <div className="flex flex-col sm:flex-row gap-3">
           <button
@@ -207,9 +228,14 @@ export const LinkedInFollow = ({ userName, onComplete }: LinkedInFollowProps) =>
               }
               onComplete();
             }}
-            className="flex-1 bg-violet-600 hover:bg-violet-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+            disabled={!followedP2E || !followedFounder}
+            className={`flex-1 font-medium py-3 px-6 rounded-lg transition-colors ${
+              followedP2E && followedFounder
+                ? 'bg-violet-600 hover:bg-violet-700 text-white cursor-pointer'
+                : 'bg-stone-300 text-stone-500 cursor-not-allowed'
+            }`}
           >
-            Continue to Dashboard
+            {followedP2E && followedFounder ? 'Continue to Dashboard' : 'Complete LinkedIn Follows to Continue'}
           </button>
         </div>
 
