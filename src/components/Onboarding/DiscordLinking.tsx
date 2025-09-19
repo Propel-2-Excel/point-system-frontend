@@ -219,12 +219,25 @@ export const DiscordLinking = ({ userName, onComplete }: DiscordLinkingProps) =>
 
       {!linkCode ? (
         <div className="text-center">
-          <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6">
-            <h3 className="font-semibold text-blue-900 mb-2">How Discord Linking Works</h3>
-            <ol className="text-sm text-blue-800 text-left list-decimal list-inside space-y-1">
-              <li>Click "Generate Code" to get your unique 6-digit verification code</li>
-              <li>Go to Discord and type <code className="bg-blue-100 px-1 rounded">!link [your-code]</code></li>
-              <li>Your account will be automatically verified and linked</li>
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 p-6 rounded-xl mb-6">
+            <h3 className="font-bold text-xl text-blue-900 mb-4 text-center">🔗 How Discord Linking Works</h3>
+            <ol className="text-base text-blue-800 text-left space-y-3">
+              <li className="flex items-start">
+                <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
+                <span className="font-medium">Click "Generate Code" to get your unique 6-digit verification code</span>
+              </li>
+              <li className="flex items-start">
+                <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
+                <div>
+                  <span className="font-medium">Go to the </span>
+                  <span className="font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded">#link-portal-here</span>
+                  <span className="font-medium"> channel in Discord and type the command</span>
+                </div>
+              </li>
+              <li className="flex items-start">
+                <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
+                <span className="font-medium">Your account will be automatically verified and linked</span>
+              </li>
             </ol>
           </div>
 
@@ -258,12 +271,34 @@ export const DiscordLinking = ({ userName, onComplete }: DiscordLinkingProps) =>
             </p>
           </div>
 
-          <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mb-6">
-            <h4 className="font-semibold text-gray-900 mb-2">Next Steps:</h4>
-            <ol className="text-sm text-gray-700 text-left list-decimal list-inside space-y-1">
-              <li>Open Discord and go to the Propel2Excel server</li>
-              <li>Type: <code className="bg-gray-200 px-1 rounded text-black">!link {linkCode.code}</code></li>
-              <li>Wait for confirmation - this page will update automatically</li>
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 p-6 rounded-xl mb-6">
+            <h4 className="font-bold text-xl text-gray-900 mb-4 text-center">📋 Instructions</h4>
+            <ol className="text-base text-gray-700 text-left space-y-3">
+              <li className="flex items-start">
+                <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
+                <span className="font-medium">Open Discord and go to the <strong>Propel2Excel</strong> server</span>
+              </li>
+              <li className="flex items-start">
+                <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
+                <div>
+                  <span className="font-medium">Navigate to the </span>
+                  <span className="font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded">#link-portal-here</span>
+                  <span className="font-medium"> channel under the "Onboarding" category</span>
+                </div>
+              </li>
+              <li className="flex items-start">
+                <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
+                <div>
+                  <span className="font-medium">Type this command exactly as shown:</span>
+                  <div className="mt-2 p-3 bg-gray-800 text-green-400 rounded-lg font-mono text-lg font-bold text-center border-2 border-gray-600">
+                    !link {linkCode.code}
+                  </div>
+                </div>
+              </li>
+              <li className="flex items-start">
+                <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">4</span>
+                <span className="font-medium">Wait for confirmation - this page will update automatically</span>
+              </li>
             </ol>
           </div>
 
